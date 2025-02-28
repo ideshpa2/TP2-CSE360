@@ -30,7 +30,6 @@ public class SortQuestions {
                 query.append(" ORDER BY id");
         }
 
-        // ✅ FIX: Use `databaseHelper.getConnection()` to avoid incorrect casting issues
         try (Connection connection = databaseHelper.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query.toString())) {
 
