@@ -51,6 +51,12 @@ public class AdminHomePage {
             }
         });
 
+        // "Invite" button for admin to generate invitation codes
+	    Button inviteButton = new Button("Invite Others");
+	    inviteButton.setOnAction(a -> {
+	        new InvitationPage().show(databaseHelper, primaryStage, user);
+	    });
+        
         // Logout Button
         Button logoutButton = new Button("Logout");
         logoutButton.setOnAction(e -> {
@@ -109,7 +115,7 @@ public class AdminHomePage {
 
         // Add all UI elements
         layout.getChildren().addAll(
-            adminLabel, userDropdown, oneTimePasswordButton, otpResultLabel,
+            adminLabel, userDropdown, oneTimePasswordButton, otpResultLabel, inviteButton,
             listUsersButton, assignRoleButton, deleteButton, roleDropdown, switchRole, logoutButton
         );
 
