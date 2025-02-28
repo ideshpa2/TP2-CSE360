@@ -48,6 +48,10 @@ public class DatabaseHelper {
 			System.err.println("JDBC Driver not found: " + e.getMessage());
 		}
 	}
+	
+	public Connection getConnection() {
+        return connection;
+    }
 
 	private void createTables() throws SQLException {
 	    String userTable = "CREATE TABLE IF NOT EXISTS cse360users ("
@@ -60,7 +64,7 @@ public class DatabaseHelper {
 
 	    statement.execute(userTable);
 	    
-	 // 2️⃣ Create Questions table (AFTER Users)
+	 // Create Questions table (AFTER Users)
 	    String questionsTable = "CREATE TABLE IF NOT EXISTS Questions ("
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	            + "content TEXT NOT NULL, "
@@ -71,7 +75,7 @@ public class DatabaseHelper {
 	            + "FOREIGN KEY (user_id) REFERENCES cse360users(id))";
 	    statement.execute(questionsTable);
 	    
-	    // 3️⃣ Create Answers table (AFTER Questions)
+	    // Create Answers table (AFTER Questions)
 	    String answersTable = "CREATE TABLE IF NOT EXISTS Answers ("
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	            + "content TEXT NOT NULL, "
@@ -83,7 +87,7 @@ public class DatabaseHelper {
 	            + "FOREIGN KEY (user_id) REFERENCES cse360users(id) ON DELETE CASCADE)";
 	    statement.execute(answersTable);
 
-	    // 4️⃣ Create ReadAnswers table (AFTER Answers)
+	    // Create ReadAnswers table (AFTER Answers)
 	    String readAnswersTable = "CREATE TABLE IF NOT EXISTS ReadAnswers ("
 	            + "user_id INT NOT NULL, "
 	            + "answer_id INT NOT NULL, "
@@ -706,8 +710,17 @@ public class DatabaseHelper {
 		    }
 		    return questions;
 		}
-
-
+		
+		// update question
+		public boolean updateQuestion(int questionId, String newContent) throws SQLException {
+		    String query = "UPDATE Questions SET content = ? WHERE id = ?";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setString(1, newContent);
+		        pstmt.setInt(2, questionId);
+		        int rowsUpdated = pstmt.executeUpdate();
+		        return rowsUpdated > 0;
+		    }
+		}
 
 		// ************ ANSWER ************ // 
 		
@@ -743,6 +756,27 @@ public class DatabaseHelper {
 	        }
 	        return null;
 	    }
+		
+		// Retrieve answers by user ID
+		public List<Answer> getAnswersByUser(int userId) throws SQLException {
+		    List<Answer> answers = new ArrayList<>();
+		    String query = "SELECT * FROM Answers WHERE user_id = ?";
+
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setInt(1, userId);
+		        ResultSet rs = pstmt.executeQuery();
+
+		        while (rs.next()) {
+		            User user = getUserById(rs.getInt("user_id"));
+		            Question question = getQuestionById(rs.getInt("question_id"));
+		            Answer answer = new Answer(rs.getInt("id"), rs.getString("content"), user, question);
+		            answer.setSolution(rs.getBoolean("is_solution"));
+		            answers.add(answer);
+		        }
+		    }
+		    return answers;
+		}
+
 
 
 		// Marks answer as solution
@@ -863,7 +897,18 @@ public class DatabaseHelper {
 		        pstmt.executeUpdate();
 		    }
 		}
+		
+		// update answer 
+		public boolean updateAnswer(int answerId, String newContent) throws SQLException {
+			String query = "UPDATE Answers SET content = ? WHERE id = ?";
+			try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+				  pstmt.setString(1, newContent);
+				  pstmt.setInt(2, answerId);
+				  int rowsUpdated = pstmt.executeUpdate();
+				  return rowsUpdated > 0;
+				}
+		}
+
 
 
 	}
-
