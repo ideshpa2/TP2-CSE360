@@ -5,18 +5,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Allows users to sort and list questions.
- */
 public class SortQuestions {
-
     private final DatabaseHelper databaseHelper;
 
     public SortQuestions(DatabaseHelper databaseHelper) {
         this.databaseHelper = databaseHelper;
     }
 
-    // Get all questions sorted by date, unresolved, or tags
     public List<Question> getSortedQuestions(String sortBy, boolean onlyUnresolved, String tagFilter) throws SQLException {
         List<Question> questions = new ArrayList<>();
         StringBuilder query = new StringBuilder("SELECT * FROM Questions WHERE 1=1");
@@ -35,16 +30,23 @@ public class SortQuestions {
                 query.append(" ORDER BY id");
         }
 
-        try (PreparedStatement pstmt = ((Statement) databaseHelper).getConnection().prepareStatement(query.toString())) {
+        // ✅ FIX: Use `databaseHelper.getConnection()` to avoid incorrect casting issues
+        try (Connection connection = databaseHelper.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(query.toString())) {
+
             if (tagFilter != null && !tagFilter.isEmpty()) {
-                pstmt.setString(1, "%" + tagFilter + "%"); // Replace ? with tag filter
+                pstmt.setString(1, "%" + tagFilter + "%"); // Apply tag filter
             }
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    User user = databaseHelper.getUserByUserName(rs.getString("username"));
-                    String tags = rs.getString("tags"); // ✅ Store as a single string
-                    questions.add(new Question(rs.getInt("id"), rs.getString("content"), user, tags));
+                    User user = databaseHelper.getUserById(rs.getInt("user_id"));
+                    String tags = rs.getString("tags");
+                    boolean isResolved = rs.getBoolean("is_resolved");
+
+                    Question question = new Question(rs.getInt("id"), rs.getString("content"), user, tags);
+                    question.setResolved(isResolved);
+                    questions.add(question);
                 }
             }
         }
