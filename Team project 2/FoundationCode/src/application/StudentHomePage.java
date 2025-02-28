@@ -263,7 +263,7 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	            // Question Label
 	            Label questionLabel = new Label(q.toString());
 
-	            // Edit Button
+	            // **Edit Button**
 	            Button editButton = new Button("Edit");
 	            TextField editField = new TextField();
 	            editField.setVisible(false);
@@ -290,7 +290,7 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	                }
 	            });
 
-	            // Mark Resolved Button
+	            // **Mark Resolved Button**
 	            Button resolveButton = new Button(q.isResolved() ? "Resolved ✅" : "Mark as Resolved");
 	            resolveButton.setOnAction(event -> {
 	                try {
@@ -304,7 +304,20 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	                }
 	            });
 
-	            questionBox.getChildren().addAll(questionLabel, editButton, editField, saveButton, resolveButton);
+	            // **Delete Question Button**
+	            Button deleteButton = new Button("Delete");
+	            deleteButton.setStyle("-fx-background-color: red; -fx-text-fill: white;");
+	            deleteButton.setOnAction(event -> {
+	                try {
+	                    databaseHelper.deleteQuestion(q.getId()); // Ensure only the question owner can delete
+	                    questionContainer.getChildren().remove(questionBox);
+	                    System.out.println("✅ Question deleted successfully.");
+	                } catch (SQLException ex) {
+	                    ex.printStackTrace();
+	                }
+	            });
+
+	            questionBox.getChildren().addAll(questionLabel, editButton, editField, saveButton, resolveButton, deleteButton);
 
 	            // Fetch and Display Answers
 	            List<Answer> answers = databaseHelper.getAnswersByQuestionId(q.getId());
@@ -318,7 +331,7 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	                    HBox answerBox = new HBox(10);
 	                    Label answerLabel = new Label(ans.toString());
 
-	                    // Select Main Answer
+	                    // **Select Main Answer**
 	                    RadioButton mainAnswerButton = new RadioButton("Mark as Main Answer");
 	                    mainAnswerButton.setToggleGroup(toggleGroup);
 	                    if (ans.isSolution()) {
@@ -449,56 +462,70 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	        ScrollPane scrollPane = new ScrollPane(answerContainer);
 	        scrollPane.setFitToWidth(true);
 
-	                answerContainer.getChildren().clear(); // Clear previous content
-	                List<Answer> answers = databaseHelper.getAnswersByUser(user.getId());
+	        answerContainer.getChildren().clear(); // Clear previous content
+	        List<Answer> answers = databaseHelper.getAnswersByUser(user.getId());
 
-	                if (answers.isEmpty()) {
-	                    answerContainer.getChildren().add(new Label("No answers found."));
+	        if (answers.isEmpty()) {
+	            answerContainer.getChildren().add(new Label("No answers found."));
+	        }
+
+	        for (Answer a : answers) {
+	            VBox answerBox = new VBox(5);
+	            Label questionLabel = new Label("Q: " + a.getQuestion().getContent());
+	            Label answerLabel = new Label("A: " + a.getContent());
+
+	            // **Edit Button**
+	            Button editButton = new Button("Edit");
+	            TextField editField = new TextField();
+	            editField.setVisible(false);
+	            Button saveButton = new Button("Save");
+	            saveButton.setVisible(false);
+
+	            editButton.setOnAction(event -> {
+	                editField.setText(a.getContent());
+	                editField.setVisible(true);
+	                saveButton.setVisible(true);
+	            });
+
+	            saveButton.setOnAction(event -> {
+	                try {
+	                    String updatedContent = editField.getText().trim();
+	                    if (!updatedContent.isEmpty()) {
+	                        databaseHelper.updateAnswer(a.getId(), updatedContent);
+	                        answerLabel.setText("A: " + updatedContent);
+	                        editField.setVisible(false);
+	                        saveButton.setVisible(false);
+	                    }
+	                } catch (SQLException ex) {
+	                    ex.printStackTrace();
 	                }
+	            });
 
-	                for (Answer a : answers) {
-	                    VBox answerBox = new VBox(5);
-	                    Label questionLabel = new Label("Q: " + a.getQuestion().getContent());
-	                    Label answerLabel = new Label("A: " + a.getContent());
-
-	                    // **Edit Button**
-	                    Button editButton = new Button("Edit");
-	                    TextField editField = new TextField();
-	                    editField.setVisible(false);
-	                    Button saveButton = new Button("Save");
-	                    saveButton.setVisible(false);
-
-	                    editButton.setOnAction(event -> {
-	                        editField.setText(a.getContent());
-	                        editField.setVisible(true);
-	                        saveButton.setVisible(true);
-	                    });
-
-	                    saveButton.setOnAction(event -> {
-	                        try {
-	                            String updatedContent = editField.getText().trim();
-	                            if (!updatedContent.isEmpty()) {
-	                                databaseHelper.updateAnswer(a.getId(), updatedContent);
-	                                answerLabel.setText("A: " + updatedContent);
-	                                editField.setVisible(false);
-	                                saveButton.setVisible(false);
-	                            }
-	                        } catch (SQLException ex) {
-	                            ex.printStackTrace();
-	                        }
-	                    });
-
-	                    answerBox.getChildren().addAll(questionLabel, answerLabel, editButton, editField, saveButton);
-	                    answerBox.setStyle("-fx-border-color: black; -fx-padding: 10; -fx-background-color: #e8e8e8;");
-	                    answerContainer.getChildren().add(answerBox);
+	            // **Delete Button**
+	            Button deleteButton = new Button("Delete");
+	            deleteButton.setStyle("-fx-background-color: red; -fx-text-fill: white;");
+	            deleteButton.setOnAction(event -> {
+	                try {
+	                    databaseHelper.deleteAnswer(a.getId(), user.getId()); // Ensure only the answer owner can delete
+	                    answerContainer.getChildren().remove(answerBox);
+	                    System.out.println("Answer deleted successfully.");
+	                } catch (SQLException ex) {
+	                    ex.printStackTrace();
 	                }
+	            });
+
+	            answerBox.getChildren().addAll(questionLabel, answerLabel, editButton, editField, saveButton, deleteButton);
+	            answerBox.setStyle("-fx-border-color: black; -fx-padding: 10; -fx-background-color: #e8e8e8;");
+	            answerContainer.getChildren().add(answerBox);
+	        }
+
 	        Button backButton = new Button("Back");
-
 	        backButton.setOnAction(e -> show(primaryStage, user));
 
 	        layout.getChildren().addAll(scrollPane, backButton);
 	        primaryStage.setScene(new Scene(layout, 800, 400));
 	    }
+
 
 	    private void showAnswerForm(Stage primaryStage, Question question) {
 	        VBox layout = new VBox(15);
