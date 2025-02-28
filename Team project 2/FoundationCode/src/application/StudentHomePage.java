@@ -52,10 +52,22 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
         Button searchByTagButton = new Button("Search Questions by Tag");
         Button viewMyAnswersButton = new Button("View My Answers");
         
-        viewMyAnswersButton.setOnAction(e -> showUserAnswersPage(primaryStage));
+        viewMyAnswersButton.setOnAction(e -> {
+			try {
+				showUserAnswersPage(primaryStage, user);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		});
         askQuestionButton.setOnAction(e -> showAskQuestionPage(primaryStage));
         listQuestionsButton.setOnAction(e -> showListQuestionsPage(primaryStage));
-        viewMyQuestionsButton.setOnAction(e -> showUserQuestionsPage(primaryStage)); // NEW
+        viewMyQuestionsButton.setOnAction(e -> {
+			try {
+				showUserQuestionsPage(primaryStage, user);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}); // NEW
         searchByTagButton.setOnAction(e -> showSearchByTagPage(primaryStage));
         // Logout Button
         Button logoutButton = new Button("Logout");
@@ -234,84 +246,116 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	    }
 
 	    
-	    private void showUserQuestionsPage(Stage primaryStage) {
+	    private void showUserQuestionsPage(Stage primaryStage, User user) throws SQLException {
 	        VBox layout = new VBox(15);
 	        layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
-
-	        Label titleLabel = new Label("Enter your username to view and update your questions:");
-	        TextField usernameField = new TextField();
-	        usernameField.setPromptText("Enter username...");
-	        Button fetchQuestionsButton = new Button("Fetch My Questions");
 	        VBox questionContainer = new VBox(10);
 	        ScrollPane scrollPane = new ScrollPane(questionContainer);
 	        scrollPane.setFitToWidth(true);
 
-	        fetchQuestionsButton.setOnAction(e -> {
-	            String enteredUsername = usernameField.getText().trim();
-	            if (enteredUsername.isEmpty()) {
-	                System.out.println("Error: Username cannot be empty.");
-	                return;
-	            }
+	        questionContainer.getChildren().clear();
+	        List<Question> questions = databaseHelper.getQuestionsByUser(user.getId());
 
-	            try {
-	                User fetchedUser = databaseHelper.getUserByUserName(enteredUsername);
-	                if (fetchedUser == null) {
-	                    System.out.println("Error: User not found.");
-	                    return;
+	        for (Question q : questions) {
+	            VBox questionBox = new VBox(5);
+	            questionBox.setStyle("-fx-border-color: black; -fx-padding: 10; -fx-background-color: #f5f5f5;");
+
+	            // Question Label
+	            Label questionLabel = new Label(q.toString());
+
+	            // Edit Button
+	            Button editButton = new Button("Edit");
+	            TextField editField = new TextField();
+	            editField.setVisible(false);
+	            Button saveButton = new Button("Save");
+	            saveButton.setVisible(false);
+
+	            editButton.setOnAction(event -> {
+	                editField.setText(q.getContent());
+	                editField.setVisible(true);
+	                saveButton.setVisible(true);
+	            });
+
+	            saveButton.setOnAction(event -> {
+	                try {
+	                    String updatedContent = editField.getText().trim();
+	                    if (!updatedContent.isEmpty()) {
+	                        databaseHelper.updateQuestion(q.getId(), updatedContent);
+	                        questionLabel.setText(updatedContent);
+	                        editField.setVisible(false);
+	                        saveButton.setVisible(false);
+	                    }
+	                } catch (SQLException ex) {
+	                    ex.printStackTrace();
 	                }
+	            });
 
-	                questionContainer.getChildren().clear();
-	                List<Question> questions = databaseHelper.getQuestionsByUser(fetchedUser.getId());
+	            // Mark Resolved Button
+	            Button resolveButton = new Button(q.isResolved() ? "Resolved ✅" : "Mark as Resolved");
+	            resolveButton.setOnAction(event -> {
+	                try {
+	                    databaseHelper.markQuestionResolved(q.getId());
+	                    q.setResolved(true);
+	                    questionLabel.setText(q.toString());
+	                    resolveButton.setText("Resolved ✅");
+	                    resolveButton.setDisable(true);
+	                } catch (SQLException ex) {
+	                    ex.printStackTrace();
+	                }
+	            });
 
-	                for (Question q : questions) {
-	                    VBox questionBox = new VBox(5);
-	                    Label questionLabel = new Label(q.getContent());
+	            questionBox.getChildren().addAll(questionLabel, editButton, editField, saveButton, resolveButton);
 
-	                    // **Edit Button**
-	                    Button editButton = new Button("Edit");
-	                    TextField editField = new TextField();
-	                    editField.setVisible(false);
-	                    Button saveButton = new Button("Save");
-	                    saveButton.setVisible(false);
-	                    Button backButton = new Button("Back");
+	            // Fetch and Display Answers
+	            List<Answer> answers = databaseHelper.getAnswersByQuestionId(q.getId());
+	            VBox answerContainer = new VBox(5);
 
-	                    editButton.setOnAction(event -> {
-	                        editField.setText(q.getContent());
-	                        editField.setVisible(true);
-	                        saveButton.setVisible(true);
-	                    });
+	            if (answers.isEmpty()) {
+	                answerContainer.getChildren().add(new Label("No answers yet."));
+	            } else {
+	                ToggleGroup toggleGroup = new ToggleGroup();
+	                for (Answer ans : answers) {
+	                    HBox answerBox = new HBox(10);
+	                    Label answerLabel = new Label(ans.toString());
 
-	                    saveButton.setOnAction(event -> {
+	                    // Select Main Answer
+	                    RadioButton mainAnswerButton = new RadioButton("Mark as Main Answer");
+	                    mainAnswerButton.setToggleGroup(toggleGroup);
+	                    if (ans.isSolution()) {
+	                        mainAnswerButton.setSelected(true);
+	                    }
+
+	                    mainAnswerButton.setOnAction(event -> {
 	                        try {
-	                            String updatedContent = editField.getText().trim();
-	                            if (!updatedContent.isEmpty()) {
-	                                databaseHelper.updateQuestion(q.getId(), updatedContent);
-	                                questionLabel.setText(updatedContent);
-	                                editField.setVisible(false);
-	                                saveButton.setVisible(false);
+	                            databaseHelper.markAnswerAsSolution(ans.getId());
+	                            for (Answer otherAns : answers) {
+	                                if (otherAns.getId() != ans.getId()) {
+	                                    otherAns.setSolution(false);
+	                                }
 	                            }
+	                            ans.setSolution(true);
+	                            answerLabel.setText(ans.toString());
 	                        } catch (SQLException ex) {
 	                            ex.printStackTrace();
 	                        }
 	                    });
 
-	                    questionBox.getChildren().addAll(questionLabel, editButton, editField, saveButton);
-	                    questionBox.setStyle("-fx-border-color: black; -fx-padding: 10; -fx-background-color: #f5f5f5;");
-	                    questionContainer.getChildren().add(questionBox);
+	                    answerBox.getChildren().addAll(answerLabel, mainAnswerButton);
+	                    answerContainer.getChildren().add(answerBox);
 	                }
-	            } catch (SQLException ex) {
-	                ex.printStackTrace();
 	            }
-	        });
-	        
-	        Button backButton = new Button("Back");
 
+	            questionBox.getChildren().add(answerContainer);
+	            questionContainer.getChildren().add(questionBox);
+	        }
+
+	        Button backButton = new Button("Back");
 	        backButton.setOnAction(e -> show(primaryStage, user));
 
-	        layout.getChildren().addAll(titleLabel, usernameField, fetchQuestionsButton, scrollPane, backButton);
+	        layout.getChildren().addAll(scrollPane, backButton);
 	        primaryStage.setScene(new Scene(layout, 800, 400));
-
 	    }
+
 
 	       	    
 	    private void showSearchByTagPage(Stage primaryStage) {
@@ -347,9 +391,9 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 
 	                for (Question q : questions) {
 	                    VBox questionBox = new VBox(5);
-	                    
+	                    String askedBy = q.getUser().getUserName();
 	                    String questionText = q.isResolved() ? "✅ " + q.getContent() : q.getContent();
-	                    Label questionLabel = new Label(questionText + " [" + q.getTags() + "]");
+	                    Label questionLabel = new Label(questionText + " [" + q.getTags() + "]" + " (asked by "+askedBy+")");
 
 	                    Button answerButton = new Button("Answer");
 
@@ -358,7 +402,7 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	                    List<Answer> answers = databaseHelper.getAnswersByQuestionId(q.getId());
 	                    for (Answer a : answers) {
 	                        String answerText = a.isSolution() ? "✅ " + a.getContent() : a.getContent();
-	                        Label answerLabel = new Label("→ " + answerText);
+	                        Label answerLabel = new Label("→ " + answerText + " (answered by " +a.getUser().getUserName()+")");
 
 	                        if (a.isSolution()) {
 	                            answerLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-padding: 5; -fx-background-color: #e8f5e9;");
@@ -398,34 +442,15 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	    // ** Answer Question Page **
 	    // ****************************
 	  
-	    private void showUserAnswersPage(Stage primaryStage) {
+	    private void showUserAnswersPage(Stage primaryStage, User user) throws SQLException {
 	        VBox layout = new VBox(15);
 	        layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
-
-	        Label titleLabel = new Label("Enter your username to view your answers:");
-	        TextField usernameField = new TextField();
-	        usernameField.setPromptText("Enter username...");
-	        Button fetchAnswersButton = new Button("Fetch My Answers");
 	        VBox answerContainer = new VBox(10);
 	        ScrollPane scrollPane = new ScrollPane(answerContainer);
 	        scrollPane.setFitToWidth(true);
 
-	        fetchAnswersButton.setOnAction(e -> {
-	            String enteredUsername = usernameField.getText().trim();
-	            if (enteredUsername.isEmpty()) {
-	                System.out.println("Error: Username cannot be empty.");
-	                return;
-	            }
-
-	            try {
-	                User fetchedUser = databaseHelper.getUserByUserName(enteredUsername);
-	                if (fetchedUser == null) {
-	                    System.out.println("Error: User not found.");
-	                    return;
-	                }
-
 	                answerContainer.getChildren().clear(); // Clear previous content
-	                List<Answer> answers = databaseHelper.getAnswersByUser(fetchedUser.getId());
+	                List<Answer> answers = databaseHelper.getAnswersByUser(user.getId());
 
 	                if (answers.isEmpty()) {
 	                    answerContainer.getChildren().add(new Label("No answers found."));
@@ -467,16 +492,11 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	                    answerBox.setStyle("-fx-border-color: black; -fx-padding: 10; -fx-background-color: #e8e8e8;");
 	                    answerContainer.getChildren().add(answerBox);
 	                }
-	            } catch (SQLException ex) {
-	                ex.printStackTrace();
-	            }
-	        });
-	        
 	        Button backButton = new Button("Back");
 
 	        backButton.setOnAction(e -> show(primaryStage, user));
 
-	        layout.getChildren().addAll(titleLabel, usernameField, fetchAnswersButton, scrollPane, backButton);
+	        layout.getChildren().addAll(scrollPane, backButton);
 	        primaryStage.setScene(new Scene(layout, 800, 400));
 	    }
 
@@ -526,7 +546,4 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	        layout.getChildren().addAll(titleLabel, questionLabel, answerField, submitButton, errorLabel, backButton);
 	        primaryStage.setScene(new Scene(layout, 800, 400));
 	    }
-    
-	            
-    
 }
