@@ -50,6 +50,11 @@ public class UserLoginPage {
         Button loginButton = new Button("Login");
 
         loginButton.setOnAction(a -> {
+            try {
+				databaseHelper.ensureConnectionOpen();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
             // Retrieve user inputs
             String userName = userNameField.getText();
             String password = passwordField.getText();
