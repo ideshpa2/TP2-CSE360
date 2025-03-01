@@ -72,27 +72,25 @@ databaseHelper Source Code
 
 Screencasts
 
-Screencast 1: https://asu.zoom.us/rec/share/ecOGziY2v03pWZe7LWUJx-RGfEeybV4jnvj-y5sFUM8kTnNaI-gr2lG1mO1YIDnm.75aePoQMRNWYBbdj?startTime=1740793380000
-Passcode: a$42KheP
+5.3.1 Screencast testing the Team’s HW2 
+https://asu.zoom.us/rec/share/zEkwyWWMCZavDWzvrzAzqewO8HSf26SoMRKTSB5njIYk1UIFfbTYyoa1lE4TcbbC.srgAeEKnMO4e_ROA Passcode: j$0+7sfL
 
-Screencast 2: https://youtu.be/L4Fg2n4FckA?si=tHAPnbEO4wAprdLd
+5.3.2 Screencasts from each Standup Meeting
 
-Demonstrates GUI and explains code regarding core features such as question/answer deletion, marking as resolution, updating questions/answers, and more.
+- Screencast 1: https://youtu.be/VQGK2eoqWTs
 
-Stand-Up Meeting Recordings
-
-Screencast 1: https://youtu.be/VQGK2eoqWTs
-
-Screencast 2: https://asu.zoom.us/rec/share/Hxitk5Y3aLw8sdqwJ5oqADh5SEqYRVqrsRCO1nH3r7y8MzMRasXj9x1AMF6SDisq.qQkObjytq2vAddqw
+- Screencast 2: https://asu.zoom.us/rec/share/Hxitk5Y3aLw8sdqwJ5oqADh5SEqYRVqrsRCO1nH3r7y8MzMRasXj9x1AMF6SDisq.qQkObjytq2vAddqw
 Passcode: w3s*!skd
 
-Screencast 3: https://youtu.be/SlPHZQpausE?si=yNoBtvCiaS2JWnuh
+- Screencast 3: https://youtu.be/SlPHZQpausE?si=yNoBtvCiaS2JWnuh
 
-Screencast 4: https://asu.zoom.us/rec/share/h1EILhcyFmHwXUS0n260kzlOJqZ_9jTCLqOpXQ4ekKEb28H0tSS0MNRCeYKtIR6h.pkPQQojvi0rJkZ_j
+- Screencast 4: https://asu.zoom.us/rec/share/h1EILhcyFmHwXUS0n260kzlOJqZ_9jTCLqOpXQ4ekKEb28H0tSS0MNRCeYKtIR6h.pkPQQojvi0rJkZ_j
 Passcode: 2$?.4u2!
 
-Screencast 5: https://youtu.be/KRJYBCAuQC0?si=5JR0X3XqLLCP8KbQ 
+- Screencast 5: https://youtu.be/KRJYBCAuQC0?si=5JR0X3XqLLCP8KbQ 
 
-Contains progress updates, team discussions, and implementation decisions.
+5.3.4 Screencasts showing the manual tests
+https://asu.zoom.us/rec/share/ecOGziY2v03pWZe7LWUJx-RGfEeybV4jnvj-y5sFUM8kTnNaI-gr2lG1mO1YIDnm.75aePoQMRNWYBbdj?startTime=1740793380000 Passcode: a$42KheP
 
-
+5.3.6 Screencasts showing the satisfaction of the requirements
+https://youtu.be/L4Fg2n4FckA?si=vJAlzvzneZFuTV9-
