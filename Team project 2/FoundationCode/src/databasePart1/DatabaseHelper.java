@@ -721,12 +721,19 @@ public class DatabaseHelper {
 		        return rowsUpdated > 0;
 		    }
 		}
+		
+		public void ensureConnectionOpen() throws SQLException {
+		    if (connection == null || connection.isClosed()) {
+		        connection = DriverManager.getConnection(DB_URL, USER, PASS);
+		    }
+		}
 
 		// ************ ANSWER ************ // 
 		
 		// Create answer 
 		
 		public void addAnswer(Answer answer) throws SQLException {
+			System.out.println("Connection status: " + !connection.isClosed());
 		    if (answer.getUser().getId() == 0) {
 		        throw new SQLException("Invalid user ID. Ensure user exists in the database before adding an answer.");
 		    }
@@ -737,6 +744,7 @@ public class DatabaseHelper {
 		        pstmt.setInt(2, answer.getQuestion().getId());
 		        pstmt.setInt(3, answer.getUser().getId()); //  Valid user ID
 		        pstmt.executeUpdate();
+		        System.out.println("✅ Answer inserted successfully.");
 		    }
 		}
 		
@@ -908,7 +916,4 @@ public class DatabaseHelper {
 				  return rowsUpdated > 0;
 				}
 		}
-
-
-
 	}
