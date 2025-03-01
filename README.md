@@ -75,8 +75,7 @@ Screencasts
 Screencast 1: https://asu.zoom.us/rec/share/ecOGziY2v03pWZe7LWUJx-RGfEeybV4jnvj-y5sFUM8kTnNaI-gr2lG1mO1YIDnm.75aePoQMRNWYBbdj?startTime=1740793380000
 Passcode: a$42KheP
 
-Screencast 2: https://asu.zoom.us/rec/share/dNcVGdE-6HiZI2C87nMK4cvvhuER8lujmw0StCwYOd3w-m2k8XcIVw_uLLGXJFHY.GeYNJybMPLUc16V5
-Passcode: J5?JHCiW
+Screencast 2: https://youtu.be/L4Fg2n4FckA?si=tHAPnbEO4wAprdLd
 
 Demonstrates GUI and explains code regarding core features such as question/answer deletion, marking as resolution, updating questions/answers, and more.
 
