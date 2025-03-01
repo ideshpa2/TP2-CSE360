@@ -225,7 +225,7 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	                    answersBox.getChildren().add(answerLabel);
 	                }
 
-	                answerButton.setOnAction(e -> showAnswerForm(primaryStage, q));
+	                answerButton.setOnAction(e -> showAnswerForm(primaryStage, q, user));
 
 	                questionBox.getChildren().addAll(questionLabel, answerButton, answersBox);
 	                questionBox.setStyle("-fx-border-color: black; -fx-padding: 10; -fx-background-color: #f5f5f5;");
@@ -414,7 +414,7 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	                    VBox answersBox = new VBox(5);
 	                    List<Answer> answers = databaseHelper.getAnswersByQuestionId(q.getId());
 	                    for (Answer a : answers) {
-	                        String answerText = a.isSolution() ? "✅ " + a.getContent() : a.getContent();
+	                        String answerText = a.toString();
 	                        Label answerLabel = new Label("→ " + answerText + " (answered by " +a.getUser().getUserName()+")");
 
 	                        if (a.isSolution()) {
@@ -426,7 +426,7 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	                        answersBox.getChildren().add(answerLabel);
 	                    }
 
-	                    answerButton.setOnAction(e -> showAnswerForm(primaryStage, q));
+	                    answerButton.setOnAction(e -> showAnswerForm(primaryStage, q, user));
 
 	                    questionBox.getChildren().addAll(questionLabel, answerButton, answersBox);
 	                    questionBox.setStyle("-fx-border-color: black; -fx-padding: 10; -fx-background-color: #f5f5f5;");
@@ -527,7 +527,7 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	    }
 
 
-	    private void showAnswerForm(Stage primaryStage, Question question) {
+	    private void showAnswerForm(Stage primaryStage, Question question, User user) {
 	        VBox layout = new VBox(15);
 	        layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
 
@@ -535,13 +535,13 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	        Label questionLabel = new Label(question.toString());
 	        TextField answerField = new TextField();
 	        answerField.setPromptText("Enter your answer...");
-
+	        Label Submitted = new Label();
 	        Label errorLabel = new Label();
 	        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
 
 	        Button submitButton = new Button("Submit");
 	        Button backButton = new Button("Back");
-
+            
 	        submitButton.setOnAction(e -> {
 	            String content = answerField.getText().trim();
 	            if (content.isEmpty()) {
@@ -554,23 +554,18 @@ public StudentHomePage(DatabaseHelper databaseHelper) {
 	            }
 
 	            try {
-	                User updatedUser = databaseHelper.getUserByUserName(user.getUserName());
-	                if (updatedUser == null) {
-	                    errorLabel.setText("Error: User does not exist.");
-	                    return;
-	                }
-
-	                Answer answer = new Answer(0, content, updatedUser, question);
+	                Answer answer = new Answer(0, content, user, question);
 	                databaseHelper.addAnswer(answer);
-	                showListQuestionsPage(primaryStage);
+	                //showListQuestionsPage(primaryStage);
+	                Submitted.setText("Answer submitted!");
 	            } catch (SQLException ex) {
 	                ex.printStackTrace();
 	            }
 	        });
 
-	        backButton.setOnAction(e -> showListQuestionsPage(primaryStage));
+	        backButton.setOnAction(e -> showSearchByTagPage(primaryStage));
 
-	        layout.getChildren().addAll(titleLabel, questionLabel, answerField, submitButton, errorLabel, backButton);
+	        layout.getChildren().addAll(titleLabel, questionLabel, answerField, submitButton, Submitted, errorLabel, backButton);
 	        primaryStage.setScene(new Scene(layout, 800, 400));
 	    }
 }
